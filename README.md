@@ -80,8 +80,8 @@ CREATE TABLE IF NOT EXISTS `device_data_6500` (
 - [ ] Enable connection to weather station database / ITOps - Guillermo or Diego
 - [ ] Add weather station data to the dashboard - Jacinda
 
-## Github accounts
+## Repository collaborators
 
-dngomez.e@gmail.com
-jacindalb0309@gmail.com
-gdamke@gmail.com
+- dngomez.e@gmail.com [Diego Gomez]
+- jacindalb0309@gmail.com [Jacinda Byam]
+- gdamke@gmail.com [Guillermo Damke]
