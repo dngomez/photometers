@@ -154,7 +154,7 @@ for device_id in device_ids:
     `counts`,
     `frequency`,
     `msas`,
-    `device_configuration_id`
+    `device_configuration_id`,
     `sun_altitude`,
     `moon_altitude`,
     `sun_az`,
