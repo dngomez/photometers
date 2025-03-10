@@ -26,7 +26,7 @@ def moon_illumination(time, ephemeris=None, location=None):
     return k.value
 
 # Set the data location
-data_location = os.path.join(os.path.dirname(__file__), "../sqm_data")
+data_location = os.path.join(os.path.dirname(__file__), "../../sqm_data")
 
 # Photometer IDs given by the vendor
 device_ids = [
