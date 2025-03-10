@@ -85,18 +85,19 @@ for device_id in device_ids:
   `frequency` FLOAT,
   `msas` FLOAT,
   `device_configuration_id` INT,
+  `sun_altitude` FLOAT,
+  `moon_altitude` FLOAT,
+  `sun_az` FLOAT,
+  `moon_az` FLOAT,
+  `sun_distance` FLOAT,
+  `moon_distance` FLOAT,
+  `phase_angle` FLOAT,
+  `moon_illum` FLOAT,
   FOREIGN KEY (`device_configuration_id`)
   REFERENCES `device_configuration`(`id`));""" %(device_id))
 
   cursor.execute("""ALTER TABLE `device_data_%s`
-  ADD COLUMN `sun_altitude` FLOAT DEFAULT 0,
-  ADD COLUMN `moon_altitude` FLOAT DEFAULT 0,
-  ADD COLUMN `sun_az` FLOAT DEFAULT 0,
-  ADD COLUMN `moon_az` FLOAT DEFAULT 0,
-  ADD COLUMN `sun_distance` FLOAT DEFAULT 0,
-  ADD COLUMN `moon_distance` FLOAT DEFAULT 0,
-  ADD COLUMN `phase_angle` FLOAT DEFAULT 0,
-  ADD COLUMN `moon_illum` FLOAT DEFAULT 0;""" %(device_id))
+                 """ %(device_id))
 
    
   # Loop through the file dates
@@ -141,7 +142,7 @@ for device_id in device_ids:
             float(sun_distance.value),    # sun_distance
             float(moon_distance.value),   # moon_distance
             float(phase_angle.value),     # phase_angle
-            float(moon_illum.value),      #  moon_illum
+            float(moon_illum.value),      # moon_illum
           ))
         line = f.readline()
 
@@ -162,7 +163,7 @@ for device_id in device_ids:
     `moon_distance`,
     `phase_angle`,
     `moon_illum`)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", database_data)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", database_data)
 
 # Write the changes to the database
 cnx.commit()
