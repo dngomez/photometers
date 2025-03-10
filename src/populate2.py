@@ -23,7 +23,7 @@ def moon_illumination(time, ephemeris=None, location=None):
    
     i = moon_phase_angle(time, ephemeris=ephemeris)
     k = (1 + np.cos(i))/2.0
-    return k.value
+    return k
 
 # Set the data location
 data_location = os.path.join(os.path.dirname(__file__), "../../sqm_data")
