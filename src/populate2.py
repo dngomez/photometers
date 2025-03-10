@@ -76,7 +76,8 @@ altaz = AltAz(alt=altitude_angle, az=azimuth, obstime=time, location=photometers
 # Loop through the devices
 for device_id in device_ids:
   # Create the device data table if doesn't exists
-   
+
+  print("Creating table for device %s" % device_id)
   cursor.execute("""CREATE TABLE IF NOT EXISTS `device_data_%s`
   (`utc_time` DATETIME NOT NULL UNIQUE PRIMARY KEY,
   `local_time` DATETIME NOT NULL,
@@ -96,12 +97,9 @@ for device_id in device_ids:
   FOREIGN KEY (`device_configuration_id`)
   REFERENCES `device_configuration`(`id`));""" %(device_id))
 
-  cursor.execute("""ALTER TABLE `device_data_%s`
-                 """ %(device_id))
-
-   
   # Loop through the file dates
   for file_date in file_dates:
+    print("Populating table for device %s and date %s" % (device_id, file_date))
     database_data = []
 
     # Compute Sun and Moon positions
