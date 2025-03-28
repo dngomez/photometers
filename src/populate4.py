@@ -5,10 +5,8 @@ from astropy.time import Time
 from astropy.coordinates import solar_system_ephemeris
 from astropy import units as u
 import numpy as np
-import datetime
-
-import pdb
-
+import datetime, calendar
+import astropy.table as tbl
 
 def moon_phase_angle(time, ephemeris=None, location=None):
    
@@ -30,68 +28,37 @@ def moon_illumination(time, ephemeris=None, location=None):
     return k
 
 # Set the data location
-data_location = os.path.join(os.path.dirname(__file__), "../../sqm_data")
+data_location = os.path.join(os.path.dirname(__file__), "../../binary_data")
 
 # Photometer IDs given by the vendor
+
 device_ids = [
-  "6609",
+  "6485",
   "6499",
   "6500",
+  "6609",
   "6610",
   "6611"
 ]
 
 # The dates of the files generated every month with the data read by every photometer
-file_dates = [
-  "2023-12",
-  "2024-01",
-  "2024-02",
-  "2024-03",
-  "2024-04",
-  "2024-05",
-  "2024-06",
-  "2024-07",
-  "2024-08",
-  "2024-09",
-  "2024-10",
-  "2024-11",
-  "2024-12",
-  "2025-01",
-  "2025-02",
-  "2025-03"
-]
+device_alt = ["30"]
+device_az = ["0"]
 
-device_alt = [
- "30",
- "90",
- "90",
- "90",
- "90"
-]
-
-device_az = [
- "0",
- "0",
- "0",
- "0",
- "0"
-]
-   
 # Connect to the database
 cnx = mysql.connector.connect(user='photometers', password='photometers_sql', host='localhost', database='photometers')
 cursor = cnx.cursor()
 
-pdb.set_trace()
-
 # Loop through the devices
 for i, device_id in enumerate(device_ids):
 
+  '''
   #store alt/az based on device id  
   altitude_angle = device_alt[i]
   azimuth = device_az[i]
   altitude_angle = float(altitude_angle) * u.deg
   azimuth = float(azimuth) * u.deg
-
+  '''
 
   # Create the device data table if doesn't exists
   print("Creating table for device %s" % device_id)
@@ -113,53 +80,46 @@ for i, device_id in enumerate(device_ids):
   `moon_illum` FLOAT,
   FOREIGN KEY (`device_configuration_id`)
   REFERENCES `device_configuration`(`id`));""" %(device_id))
+  
+  # Open the binary table with all calculations:
+  filename = os.path.join( data_location, f"computed_data_{device_id}.fits")
+  data = tbl.Table.read( filename)
+  data_dates = Time( data['UTCTime'], scale='utc')
 
-  # Loop through the file dates
-  for i, file_date in enumerate(file_dates):
-    print("Populating table for device %s and date %s" % (device_id, file_date))
-    database_data = []
+
+  ## CREATE A FAKE DEVICE_CONF_ID ##
+  data['DeviceConfID'] = [1]*len(data)
+
+  # Loop through the file dates, split by monthly data:
+  min_date = data_dates.min()
+  max_date = data_dates.max()
+  min_date_dt = min_date.to_datetime()
+  max_date_dt = data_dates.to_datetime()
+
+  date = datetime.datetime( min_date_dt.year, min_date_dt.month, 1, 12, 0, 0)
+
+  while max_date > date:
+    # Populate for a single month (to prevent bottlenecks)
+    days_in_month = datetime.timedelta(days=calendar.monthrange(date.year, date.month)[1])
+    monthly_data = data[(data_dates > date) & (data_dates < date + days_in_month)]
+    print( f"Start date is {date} and end date is {date + days_in_month}")
+
+   
+    print("Populating table for device %s and month %s-%s with %s lines/records" % (device_id, date.year, date.month, len(monthly_data)))
     
-    with open(os.path.join(data_location, "sqm_ctio_%s/SQM_%s_CTIO_%s.dat" %(device_id, device_id, file_date))) as f:
-      line = f.readline()
-   
-      # while line:
-      for j in range(100):
-        # Skip commented lines
-        if not line.startswith("#"):
-          data = line.strip().split(";")
+    # Reorder the columns for the output list to populate:
+    database_monthly_data = monthly_data[['UTCTime', 'LocalTime', 'temp', 'counts', 'freq', 'msas', 'DeviceConfID', 'SunAlt','MoonAlt','GalacticLat','MoonAz','GeoTrueEclipticLat','MoonDistance','MoonPhaseAngle','MoonIllum']]
+    
+    # Make sure that the datatype is string:
+    database_monthly_data['UTCTime'] = database_monthly_data['UTCTime'].astype(str)
+    database_monthly_data['LocalTime'] = database_monthly_data['LocalTime'].astype(str)
 
-          # Define the observing location
-          # lat/lon from ctio coordinates website (former UCAC and 16"#1)
-          photometers_local = EarthLocation(lat=-70.482282*u.deg, lon=-30.100695*u.deg, height=2206.6*u.m)
-          
-          try:
-            time_new = data[i]
-            time=Time(time_new, format='isot', scale='utc')
-          except ValueError:
-            continue
-          #get the utc time from device id table
-          print (time)
+    # Convert Astropy table to Python list:
+    database_data = database_monthly_data.as_array().tolist()
 
-          # define the observer's location(altidude = azimuth)
-          altaz = AltAz(altitude_angle, azimuth, obstime=time, location=photometers_local)
-
-          # Compute Sun and Moon positions
-          with solar_system_ephemeris.set('builtin'):
-            sun_altaz = get_body("sun", time, location=photometers_local).transform_to(altaz)
-            moon_altaz = get_body("moon", time, location=photometers_local).transform_to(altaz)
-     
-          #extract the values
-          sun_altitude = sun_altaz.alt
-          moon_altitude = moon_altaz.alt
-          sun_az = sun_altaz.az
-          moon_az = moon_altaz.az
-          sun_distance = sun_altaz.distance
-          moon_distance = moon_altaz.distance
-          
-          # Compute Moon illumination fraction (0 to 1)
-          phase_angle= moon_phase_angle(time)
-          moon_illum = moon_illumination(time)
-   
+    ### THIS IS NOT USED ANYMORE, KEPT FOR REFERENCE
+    '''
+    if False:
           database_data.append((
             data[0],                      # utc_time
             data[1],                      # local_time
@@ -170,15 +130,14 @@ for i, device_id in enumerate(device_ids):
             1,                            # device_configuration_id (this should change depending on the device used and device position
             float(sun_altitude.value),    # sun_altitude
             float(moon_altitude.value),   # moon_altitude
-            float(sun_az.value),          # sun_az
+            float(sun_az.value),          # sun_az -> I PUT GalacticLat
             float(moon_az.value),         # moon_az
-            float(sun_distance.value),    # sun_distance
+            float(sun_distance.value),    # sun_distance -> I PUT GeoTrueEclipticLat
             float(moon_distance.value),   # moon_distance
             float(phase_angle.value),     # phase_angle
             float(moon_illum.value),      # moon_illum
           ))
-        line = f.readline()
-
+    '''
     # Insert the data
     cursor.executemany(f"""INSERT IGNORE INTO `device_data_{device_id}`
     (`utc_time`,
@@ -198,6 +157,11 @@ for i, device_id in enumerate(device_ids):
     `moon_illum`)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", database_data)
 
+    print("Writing to database")
+    cnx.commit()
+    
+    # Increase loop:
+    date = date + days_in_month
+    
 # Write the changes to the database
-cnx.commit()
 cnx.close()

@@ -7,9 +7,6 @@ from astropy import units as u
 import numpy as np
 import datetime
 
-import pdb
-
-
 def moon_phase_angle(time, ephemeris=None, location=None):
    
     #Calculate the moon's orbital phase in radians.
@@ -33,6 +30,7 @@ def moon_illumination(time, ephemeris=None, location=None):
 data_location = os.path.join(os.path.dirname(__file__), "../../sqm_data")
 
 # Photometer IDs given by the vendor
+'''
 device_ids = [
   "6609",
   "6499",
@@ -40,8 +38,14 @@ device_ids = [
   "6610",
   "6611"
 ]
+'''
+device_ids = ["6609"]
 
 # The dates of the files generated every month with the data read by every photometer
+file_dates = ["2024-05", "2024-06"]
+device_alt = ["30"]
+device_az = ["0"]
+'''
 file_dates = [
   "2023-12",
   "2024-01",
@@ -76,12 +80,10 @@ device_az = [
  "0",
  "0"
 ]
-   
+'''   
 # Connect to the database
 cnx = mysql.connector.connect(user='photometers', password='photometers_sql', host='localhost', database='photometers')
 cursor = cnx.cursor()
-
-pdb.set_trace()
 
 # Loop through the devices
 for i, device_id in enumerate(device_ids):
@@ -113,7 +115,11 @@ for i, device_id in enumerate(device_ids):
   `moon_illum` FLOAT,
   FOREIGN KEY (`device_configuration_id`)
   REFERENCES `device_configuration`(`id`));""" %(device_id))
-
+  
+  # Define the observing location
+  # lat/lon from ctio coordinates website (former UCAC and 16"#1)
+  photometers_local = EarthLocation(lat=-70.482282*u.deg, lon=-30.100695*u.deg, height=2206.6*u.m)
+   
   # Loop through the file dates
   for i, file_date in enumerate(file_dates):
     print("Populating table for device %s and date %s" % (device_id, file_date))
@@ -122,16 +128,11 @@ for i, device_id in enumerate(device_ids):
     with open(os.path.join(data_location, "sqm_ctio_%s/SQM_%s_CTIO_%s.dat" %(device_id, device_id, file_date))) as f:
       line = f.readline()
    
-      # while line:
-      for j in range(100):
+      while line:
         # Skip commented lines
         if not line.startswith("#"):
           data = line.strip().split(";")
-
-          # Define the observing location
-          # lat/lon from ctio coordinates website (former UCAC and 16"#1)
-          photometers_local = EarthLocation(lat=-70.482282*u.deg, lon=-30.100695*u.deg, height=2206.6*u.m)
-          
+      
           try:
             time_new = data[i]
             time=Time(time_new, format='isot', scale='utc')
