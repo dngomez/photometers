@@ -1,0 +1,19 @@
+services:
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - '80:3000'
+    volumes:
+      - 'grafana_storage:/var/lib/grafana'
+  database:
+    image: mysql
+    container_name: photometers-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - 3306:3306
+
+volumes:
+  grafana_storage: {}
