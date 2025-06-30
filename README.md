@@ -10,7 +10,7 @@ sh Miniconda3-latest-Linux-x86_64.sh
 Once miniconda is installed, the proper environment should be created using
 
 ```bash
-conda create --file conda-env.yml
+conda env create --file conda-env.yml
 ```
 
 Then copy the `bash_conda.sh` script to be sourced using a crontab job.
