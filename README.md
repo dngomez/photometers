@@ -1,3 +1,33 @@
+## Getting started
+
+To start a miniconda installation is required
+
+```bash
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+sh Miniconda3-latest-Linux-x86_64.sh
+```
+
+Once miniconda is installed, the proper environment should be created using
+
+```bash
+conda create --file conda-env.yml
+```
+
+Then copy the `bash_conda.sh` script to be sourced using a crontab job.
+
+```bash
+cp bash_conda.sh ~/.bash_conda
+```
+
+Finally the proper crontab jobs must be created for the user with the following content
+
+```bash
+SHELL=/bin/bash
+PATH=~/bin:/usr/bin:/bin
+0 9 * * * /home/photometers/photometers/ephemeris/ephemeris.sh
+0 10 * * * /home/photometers/photometers/ephemeris/clear_ephemeris.sh
+```
+
 ## Database configuration
 
 #### device_configuration table
