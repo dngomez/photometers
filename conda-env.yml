@@ -3,7 +3,7 @@ dependencies:
   - python=3.7
   - numpy
   - astropy
-  - mysql-connector
   - pip
   - pip:
+      - mysql-connector
       - astroplan
