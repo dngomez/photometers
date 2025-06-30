@@ -1,5 +1,5 @@
 import numpy as np
-from datetime import datetime, timedelta, UTC
+from datetime import timedelta
 import astropy.units as u
 from astropy.coordinates import get_sun, AltAz, EarthLocation, get_body, TETE
 from astropy.time import Time

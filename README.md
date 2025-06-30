@@ -1,5 +1,7 @@
 ## Getting started
 
+This repository should be cloned in the `photometers` directory in the home directory of `photometers` user.
+
 To start a miniconda installation is required
 
 ```bash
@@ -17,6 +19,12 @@ Then copy the `bash_conda.sh` script to be sourced using a crontab job.
 
 ```bash
 cp bash_conda.sh ~/.bash_conda
+```
+
+Add execution permission to `ephemeris.sh` and `clear_ephemeris.sh` scripts
+
+```bash
+chmod +x ~/photometers/ephemeris/ephemeris.sh ~/photometers/ephemeris/clear_ephemeris.sh
 ```
 
 Finally the proper crontab jobs must be created for the user with the following content
@@ -68,7 +76,7 @@ PATH=~/bin:/usr/bin:/bin
 - Create device_configuration table
 
 ```SQL
-SQL COMMANDS TO CREATE THE TABLES CREATE TABLE IF NOT EXISTS `device_configuration` (
+CREATE TABLE IF NOT EXISTS `device_configuration` (
   `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `device_id` INT NOT NULL,
   `date_setup` DATE,

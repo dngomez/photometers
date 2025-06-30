@@ -5,5 +5,5 @@ dependencies:
   - astropy
   - pip
   - pip:
-      - mysql-connector
+      - mysql-connector-python
       - astroplan
